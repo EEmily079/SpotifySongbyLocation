@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get User Location</title>
+</head>
+<body>
+    <button onclick="getLocationAndSend()">Get Location</button>
+    <script>
+        function getLocationAndSend() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendLocationToBackend);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function sendLocationToBackend(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const timeStamp = position.timestamp;
+
+            // Send the latitude and longitude to the Spring Boot backend
+            // using AJAX or fetch API
+            const data = { latitude, longitude, timeStamp };
+
+            // For example using fetch API
+            fetch('http://localhost:9090/api/check-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => {
+                if (response.ok) {
+                    // Request successful, now get the real location from the backend
+                    fetch('http://localhost:9090/api/getLocation', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }).then(response => response.json())
+                      .then(data => {
+                          // Use the data received from the backend (real location)
+                          console.log('Real Location:', data);
+                      })
+                      .catch(error => {
+                          console.error('Error while fetching real location:', error);
+                      });
+                } else {
+                    console.error('Error while sending location data to backend.');
+                }
+            }).catch(error => {
+                console.error('Error while sending location data to backend:', error);
+            });
+        }
+    </script>
+</body>
+</html>
